@@ -3,7 +3,7 @@
 // @namespace    https://mhk.hu/
 // @version      2025-04-14
 // @description  gitlab MR coloring
-// @author       You
+// @author       Kocsis Antal
 // @match        https://gitlab.mhk.hu/*/merge_requests*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
