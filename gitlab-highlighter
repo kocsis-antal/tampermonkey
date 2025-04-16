@@ -1,6 +1,7 @@
 // ==UserScript==
+// @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @name         Gitlab highlighter
-// @version      1.0.20250414
+// @version      1.0.20250414-1628
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-highlighter
 // @description  gitlab MR coloring
 // @author       Kocsis Antal
