@@ -1,0 +1,44 @@
+// ==UserScript==
+// @name         Gitlab highlighter
+// @namespace    https://mhk.hu/
+// @version      2025-04-14
+// @description  gitlab MR coloring
+// @author       You
+// @match        https://gitlab.mhk.hu/*/merge_requests*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Your code here...
+    const currentUser = document.querySelector('.current-user').childNodes[1].childNodes[0].textContent.trim();
+    // console.log('currentUser: [' + currentUser + ']');
+
+    document.querySelectorAll('.merge-request').forEach(el => {
+        const text = el.childNodes[1].childNodes[1].childNodes[1].childNodes[1].childNodes[1].text;
+        if (text.startsWith('Draft:') ) {
+            // draft
+            el.style.backgroundColor = '#ffeeee';
+        } else {
+            const controlls = el.childNodes[1].childNodes[3].childNodes[1];
+            // owner
+            // console.log('title-1: ' + controlls.childNodes[1].childNodes[1].title);
+            // console.log('title-2: ' + controlls.childNodes[3].childNodes[1].title);
+            if (controlls.childNodes[1].childNodes[1].title && controlls.childNodes[1].childNodes[1].title == 'Assigned to ' + currentUser || controlls.childNodes[3].childNodes[1].title == 'Assigned to ' + currentUser) {
+                el.style.border = '5px double';
+            }
+
+            // approves
+            const title = controlls.childNodes[controlls.childNodes.length-4].title;
+            if (title.includes('you') ) {
+                el.style.backgroundColor = '#aaffaa';
+            } else if (title.includes('approver') ) {
+                el.style.backgroundColor = '#eeffee';
+            } else {
+                el.style.backgroundColor = '#fffeee';
+            }
+        }
+    });
+})();
