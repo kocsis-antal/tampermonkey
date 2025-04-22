@@ -1,13 +1,13 @@
 // ==UserScript==
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @name         Gitlab highlighter
-// @version      1.0.20250414-1633
+// @version      1.0.20250422-1208
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-highlighter
 // @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-highlighter
 // @description  gitlab MR coloring
 // @author       Kocsis Antal
 // @match        https://gitlab.mhk.hu/*/merge_requests*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=mhk.hu
 // @grant        none
 // ==/UserScript==
 
