@@ -47,7 +47,7 @@
     // MR button
     var newHTML = document.createElement ('li');
     newHTML.innerHTML = `
-<a title="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
+<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
 	<svg class="s16" data-testid="git-merge-icon">
 		<use href="/assets/icons-87cb0ce1047e0d3e1ddd352a88d6807e6155673ebba21022180ab5ee153c2026.svg#git-merge"/>
 	</svg>
