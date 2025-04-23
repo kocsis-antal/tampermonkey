@@ -1,7 +1,7 @@
 // ==UserScript==
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @name         Gitlab extender
-// @version      1.0.20250423-0910
+// @version      1.0.20250423-0915
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
