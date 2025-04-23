@@ -1,7 +1,7 @@
 // ==UserScript==
-// @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @name         Gitlab extender
-// @version      1.0.20250423-1027
+// @namespace    https://github.com/kocsis-antal/tampermonkey/
+// @version      1.0.20250423-1101
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -11,7 +11,6 @@
 // @match        https://gitlab.mhk.hu/*/merge_requests/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mhk.hu
 // @grant        none
-// @run-at       document-end
 // ==/UserScript==
 
 (function() {
@@ -21,32 +20,34 @@
     const currentUser = document.querySelector('.current-user').childNodes[1].childNodes[0].textContent.trim();
     // console.log('currentUser: [' + currentUser + ']');
 
-    document.querySelectorAll('.merge-request').forEach(el => {
-	    try {
-	        const text = el.childNodes[1].childNodes[1].childNodes[1].childNodes[1].childNodes[1].text;
-	        if (text.startsWith('Draft:') ) {
-	            // draft
-	            el.style.backgroundColor = '#ffeeee';
-	        } else {
-	            const controlls = el.childNodes[1].childNodes[3].childNodes[1];
-	            // owner
-	            // console.log('title-1: ' + controlls.childNodes[1].childNodes[1].title);
-	            // console.log('title-2: ' + controlls.childNodes[3].childNodes[1].title);
-	            if (controlls.childNodes[1].childNodes[1].title && controlls.childNodes[1].childNodes[1].title == 'Assigned to ' + currentUser || controlls.childNodes[3].childNodes[1].title == 'Assigned to ' + currentUser) {
-	                el.style.border = '5px double';
-	            }
-	
-	            // approves
-	            const title = controlls.childNodes[controlls.childNodes.length-4].title;
-	            if (title.includes('you') ) {
-	                el.style.backgroundColor = '#aaffaa';
-	            } else if (title.includes('approver') ) {
-	                el.style.backgroundColor = '#eeffee';
-	            } else {
-	                el.style.backgroundColor = '#fffeee';
-	            }
-		}
-	    } catch(err) { /* NOP */}
+    document.querySelectorAll('.merge-request').forEach(mrLine => {
+        try {
+            const text = mrLine.querySelector('.merge-request-title-text').childNodes[1].text;
+            if (text.startsWith('Draft:') ) {
+                // draft
+                mrLine.style.backgroundColor = '#ffeeee';
+            } else {
+                // owner
+                if (mrLine.querySelector('.author-link').text == currentUser) {
+                    mrLine.style.border = '5px double';
+                }
+
+                // approves
+                const titleNode = mrLine.querySelector('.text-success');
+                if (titleNode && titleNode.title.includes('you') ) {
+                    // you
+                    mrLine.style.backgroundColor = '#aaffaa';
+                } else if (titleNode && titleNode.title.includes('approver') ) {
+                    // others
+                    mrLine.style.backgroundColor = '#eeffee';
+                } else {
+                    // none
+                    mrLine.style.backgroundColor = '#fffeee';
+                }
+            }
+        } catch(err) {
+            console.log(err);
+        }
     });
 
     // MR button
