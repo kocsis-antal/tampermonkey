@@ -6,9 +6,7 @@
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
 // @author       Kocsis Antal
-// @match        https://gitlab.mhk.hu/*/merge_requests
-// @match        https://gitlab.mhk.hu/*/merge_requests*
-// @match        https://gitlab.mhk.hu/*/merge_requests/*
+// @match        https://gitlab.mhk.hu/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mhk.hu
 // @grant        none
 // ==/UserScript==
