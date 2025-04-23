@@ -1,7 +1,7 @@
 // ==UserScript==
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @name         Gitlab extender
-// @version      1.0.20250423-0948
+// @version      1.0.20250423-0955
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -21,29 +21,31 @@
     // console.log('currentUser: [' + currentUser + ']');
 
     document.querySelectorAll('.merge-request').forEach(el => {
-        const text = el.childNodes[1].childNodes[1].childNodes[1].childNodes[1].childNodes[1].text;
-        if (text.startsWith('Draft:') ) {
-            // draft
-            el.style.backgroundColor = '#ffeeee';
-        } else {
-            const controlls = el.childNodes[1].childNodes[3].childNodes[1];
-            // owner
-            // console.log('title-1: ' + controlls.childNodes[1].childNodes[1].title);
-            // console.log('title-2: ' + controlls.childNodes[3].childNodes[1].title);
-            if (controlls.childNodes[1].childNodes[1].title && controlls.childNodes[1].childNodes[1].title == 'Assigned to ' + currentUser || controlls.childNodes[3].childNodes[1].title == 'Assigned to ' + currentUser) {
-                el.style.border = '5px double';
-            }
-
-            // approves
-            const title = controlls.childNodes[controlls.childNodes.length-4].title;
-            if (title.includes('you') ) {
-                el.style.backgroundColor = '#aaffaa';
-            } else if (title.includes('approver') ) {
-                el.style.backgroundColor = '#eeffee';
-            } else {
-                el.style.backgroundColor = '#fffeee';
-            }
-        }
+	    try {
+	        const text = el.childNodes[1].childNodes[1].childNodes[1].childNodes[1].childNodes[1].text;
+	        if (text.startsWith('Draft:') ) {
+	            // draft
+	            el.style.backgroundColor = '#ffeeee';
+	        } else {
+	            const controlls = el.childNodes[1].childNodes[3].childNodes[1];
+	            // owner
+	            // console.log('title-1: ' + controlls.childNodes[1].childNodes[1].title);
+	            // console.log('title-2: ' + controlls.childNodes[3].childNodes[1].title);
+	            if (controlls.childNodes[1].childNodes[1].title && controlls.childNodes[1].childNodes[1].title == 'Assigned to ' + currentUser || controlls.childNodes[3].childNodes[1].title == 'Assigned to ' + currentUser) {
+	                el.style.border = '5px double';
+	            }
+	
+	            // approves
+	            const title = controlls.childNodes[controlls.childNodes.length-4].title;
+	            if (title.includes('you') ) {
+	                el.style.backgroundColor = '#aaffaa';
+	            } else if (title.includes('approver') ) {
+	                el.style.backgroundColor = '#eeffee';
+	            } else {
+	                el.style.backgroundColor = '#fffeee';
+	            }
+		}
+	    } catch(err) { /* NOP */}
     });
 
     // MR button
