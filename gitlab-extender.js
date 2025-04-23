@@ -1,9 +1,9 @@
 // ==UserScript==
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @name         Gitlab extender
-// @version      1.0.20250423-0955
+// @version      1.0.20250423-1027
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
-// @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
+// @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
 // @author       Kocsis Antal
 // @match        https://gitlab.mhk.hu/*/merge_requests
@@ -11,6 +11,7 @@
 // @match        https://gitlab.mhk.hu/*/merge_requests/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mhk.hu
 // @grant        none
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
