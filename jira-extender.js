@@ -1,9 +1,9 @@
 // ==UserScript==
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @name         Gitlab MR search for Jira
-// @version      1.0.20250422-1208
-// @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-mrSearch
-// @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-mrSearch
+// @name         Jira extender
+// @version      1.0.20250423-0915
+// @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-extender.js
+// @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-extender.js
 // @description  gitlab MR search for jira
 // @author       Kocsis Antal
 // @match        https://jira.mhk.hu/browse/*
