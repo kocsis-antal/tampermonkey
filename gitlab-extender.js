@@ -15,7 +15,7 @@
     'use strict';
 
     // Your code here...
-    const currentUser = document.querySelector('.current-user').childNodes[1].childNodes[0].textContent.trim();
+    const currentUser = document.querySelector('[data-testid="user-menu-toggle"] > span > span').textContent.replace(" user’s menu","");
     // console.log('currentUser: [' + currentUser + ']');
 
     document.querySelectorAll('.merge-request').forEach(mrLine => {
