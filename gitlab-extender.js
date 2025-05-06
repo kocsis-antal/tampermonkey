@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250506-1015
+// @version      1.1.20250506-1040
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -58,6 +58,6 @@
 	<span aria-label="0 assigned issues" class="gl-badge badge badge-pill badge-success sm gl-ml-n2 gl-display-none">0</span>
 </a>`;
 
-    const navBar = document.getElementById("js-onboarding-new-project-link").parentElement.parentElement;
-    navBar.insertBefore(newHTML, navBar.firstChild);
+    const navBar = document.querySelector('.user-bar > div');
+    navBar.insertBefore(newHTML, document.querySelectorAll('[data-testid="super-sidebar-collapse-button"]'));
 })();
