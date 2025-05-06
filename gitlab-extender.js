@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250506-1205
+// @version      1.1.20250506-1215
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -49,18 +49,17 @@
     });
 
     // MR button
-    var newHTML = document.createElement ('li');
+    var newHTML = document.createElement ('div');
     newHTML.innerHTML = `
-<div class="gl-disclosure-dropdown gl-new-dropdown" data-testid="new-menu-toggle">
-	<button id="create-menu-toggle" data-testid="base-dropdown-toggle" aria-expanded="false" aria-controls="base-dropdown-5" aria-labelledby="create-menu-toggle" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary gl-new-dropdown-toggle gl-new-dropdown-icon-only btn-icon gl-new-dropdown-toggle-no-caret">
+<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
+	<button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon">
 		<!---->
 		<svg class="s16" data-testid="git-merge-icon">
-			<use href="/assets/icons-0b41337f52be73f7bbf9d59b841eb98a6e790dfa1a844644f120a80ce3cc18ba.svg#merge-request-open"/>
+			<use href="/assets/icons-0b41337f52be73f7bbf9d59b841eb98a6e790dfa1a844644f120a80ce3cc18ba.svg#merge-request-open"></use>
 		</svg>
-		<span aria-label="0 assigned issues" class="gl-badge badge badge-pill badge-success sm gl-ml-n2 gl-display-none">0</span>
 		<!---->
 	</button>
-</div>
+</a>
 `;
 
     const navBar = document.querySelector('.user-bar > div');
