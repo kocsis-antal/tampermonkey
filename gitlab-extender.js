@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250506-1045
+// @version      1.1.20250506-1050
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -59,5 +59,5 @@
 </a>`;
 
     const navBar = document.querySelector('.user-bar > div');
-    navBar.insertBefore(newHTML, document.querySelectorAll('[data-testid="super-sidebar-collapse-button"]'));
+    navBar.insertBefore(newHTML, document.querySelector('[data-testid="super-sidebar-collapse-button"]'));
 })();
