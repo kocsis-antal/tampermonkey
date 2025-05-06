@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250506-1040
+// @version      1.1.20250506-1045
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -31,7 +31,7 @@
                 }
 
                 // approves
-                const titleNode = mrLine.querySelector('.text-success');
+                const titleNode = mrLine.querySelector('[data-testid="mr-appovals"]');
                 if (titleNode && titleNode.title.includes('you') ) {
                     // you
                     mrLine.style.backgroundColor = '#aaffaa';
