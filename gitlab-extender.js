@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250506-1050
+// @version      1.1.20250506-1155
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -53,7 +53,7 @@
     newHTML.innerHTML = `
 <a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
 	<svg class="s16" data-testid="git-merge-icon">
-		<use href="/assets/icons-87cb0ce1047e0d3e1ddd352a88d6807e6155673ebba21022180ab5ee153c2026.svg#git-merge"/>
+		<use href="/assets/icons-0b41337f52be73f7bbf9d59b841eb98a6e790dfa1a844644f120a80ce3cc18ba.svg#merge-request-open"/>
 	</svg>
 	<span aria-label="0 assigned issues" class="gl-badge badge badge-pill badge-success sm gl-ml-n2 gl-display-none">0</span>
 </a>`;
