@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250515-1040
+// @version      1.1.20250515-1105
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -15,6 +15,25 @@
     'use strict';
 
     // Your code here...
+
+    // MR button
+    var newHTML = document.createElement ('div');
+    newHTML.innerHTML = `
+<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
+	<button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon">
+		<!---->
+		<svg class="s16" data-testid="git-merge-icon">
+			<use href="/assets/icons-0b41337f52be73f7bbf9d59b841eb98a6e790dfa1a844644f120a80ce3cc18ba.svg#merge-request-open"></use>
+		</svg>
+		<!---->
+	</button>
+</a>
+`;
+
+    const navBar = document.querySelector('.user-bar > div');
+    navBar.insertBefore(newHTML, document.querySelector('[data-testid="super-sidebar-collapse-button"]'));
+
+    // line coloring
 window.addEventListener('load', function() {
     const currentUser = document.querySelector('[data-testid="user-menu-toggle"] > span > span').textContent.replace(" user’s menu","");
     // console.log('currentUser: [' + currentUser + ']');
@@ -50,20 +69,4 @@ window.addEventListener('load', function() {
     });
 },false);
 
-    // MR button
-    var newHTML = document.createElement ('div');
-    newHTML.innerHTML = `
-<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
-	<button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon">
-		<!---->
-		<svg class="s16" data-testid="git-merge-icon">
-			<use href="/assets/icons-0b41337f52be73f7bbf9d59b841eb98a6e790dfa1a844644f120a80ce3cc18ba.svg#merge-request-open"></use>
-		</svg>
-		<!---->
-	</button>
-</a>
-`;
-
-    const navBar = document.querySelector('.user-bar > div');
-    navBar.insertBefore(newHTML, document.querySelector('[data-testid="super-sidebar-collapse-button"]'));
 })();
