@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250515-1105
+// @version      1.1.20250515-1200
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -17,8 +17,9 @@
     // Your code here...
 
     // MR button
-    var newHTML = document.createElement ('div');
-    newHTML.innerHTML = `
+	try {
+	    var newHTML = document.createElement ('div');
+	    newHTML.innerHTML = `
 <a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
 	<button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon">
 		<!---->
@@ -28,7 +29,10 @@
 		<!---->
 	</button>
 </a>
-`;
+		`;
+	} catch(err) {
+		console.log(err);
+	}
 
     const navBar = document.querySelector('.user-bar > div');
     navBar.insertBefore(newHTML, document.querySelector('[data-testid="super-sidebar-collapse-button"]'));
