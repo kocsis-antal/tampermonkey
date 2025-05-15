@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gitlab extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.1.20250506-1215
+// @version      1.1.20250515-1040
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
 // @description  gitlab MR coloring and extra MR button
@@ -15,12 +15,13 @@
     'use strict';
 
     // Your code here...
+window.addEventListener('load', function() {
     const currentUser = document.querySelector('[data-testid="user-menu-toggle"] > span > span').textContent.replace(" user’s menu","");
     // console.log('currentUser: [' + currentUser + ']');
 
     document.querySelectorAll('.merge-request').forEach(mrLine => {
         try {
-            const text = mrLine.querySelector('.merge-request-title-text').childNodes[1].text;
+            const text = mrLine.querySelector('.issue-title-text').text;
             if (text.startsWith('Draft:') ) {
                 // draft
                 mrLine.style.backgroundColor = '#ffeeee';
@@ -35,7 +36,7 @@
                 if (titleNode && titleNode.title.includes('you') ) {
                     // you
                     mrLine.style.backgroundColor = '#aaffaa';
-                } else if (titleNode && titleNode.title.includes('approver') ) {
+                } else if (titleNode && titleNode.textContent.includes('Approved') ) {
                     // others
                     mrLine.style.backgroundColor = '#eeffee';
                 } else {
@@ -47,6 +48,7 @@
             console.log(err);
         }
     });
+},false);
 
     // MR button
     var newHTML = document.createElement ('div');
