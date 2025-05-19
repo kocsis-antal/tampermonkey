@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Gitlab extender
-// @version      1.1.20250515-1400
+// @version      1.1.20250519-1630
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @source       https://github.com/kocsis-antal/tampermonkey
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
@@ -15,7 +15,9 @@
 (function() {
     'use strict';
     // Your code here...
+    addMrButton();
 
+	// wait for MR list
     // source: https://stackoverflow.com/questions/12897446/userscript-to-wait-for-page-to-load-before-executing-code-techniques
     (new MutationObserver(check)).observe(document, {childList: true, subtree: true});
     function check(changes, observer) {
@@ -23,7 +25,6 @@
             observer.disconnect();
             // actions to perform after #mySelector is found
 
-            addMrButton();
             colorLines();
         }
     }
@@ -55,7 +56,7 @@
         document.querySelectorAll('.merge-request').forEach(mrLine => {
             try {
                 const text = mrLine.querySelector('.issue-title-text').text;
-                if (text.startsWith('Draft:') ) {
+                if (/^\s+Draft:/.test(text) ) {
                     // draft
                     mrLine.style.backgroundColor = '#ffeeee';
                 } else {
