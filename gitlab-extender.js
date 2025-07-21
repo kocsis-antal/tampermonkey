@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Gitlab extender
-// @version      1.1.20250519-1630
+// @version      1.1.20250721-1645
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @source       https://github.com/kocsis-antal/tampermonkey
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
