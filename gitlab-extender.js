@@ -33,7 +33,7 @@
     function addMrButton() {
         var newHTML = document.createElement ('div');
         newHTML.innerHTML = `
-<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened">
+<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened&amp;not[label_name][]=renovate">
 	<button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon">
 		<!---->
 		<svg class="s16" data-testid="git-merge-icon">
