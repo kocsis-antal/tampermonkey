@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name         Café Metropolitan – Greenpoint7 napi menü (fix 2 hasábos faliújság)
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
+// @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/cafemetropolitan.js
+// @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/cafemetropolitan.js
 // @description  Greenpoint7 napi menü (#Section5), stabil fix két hasábos, görgetésmentes, faliújságos megjelenítés – Kocsis Antal készítése
 // @author       Kocsis Antal
 // @match        https://cafemetropolitan.hu/*
@@ -68,72 +70,81 @@
         text-align: center;
       }
     `;
-      document.head.appendChild(style);
+        document.head.appendChild(style);
 
-      // Fejléc
-      const title = document.createElement('h1');
-      title.innerText = 'Greenpoint7 – Mai menü';
-      document.body.appendChild(title);
+        // Fejléc
+        const title = document.createElement('h1');
+        title.innerText = 'Greenpoint7 – Mai menü';
+        document.body.appendChild(title);
 
-      // Oszlopstruktúra
-      const rowWrapper = document.createElement('div');
-      rowWrapper.className = 'row-wrapper';
-      const leftCol = document.createElement('div');
-      leftCol.className = 'column';
-      const rightCol = document.createElement('div');
-      rightCol.className = 'column';
-      rowWrapper.appendChild(leftCol);
-      rowWrapper.appendChild(rightCol);
-      document.body.appendChild(rowWrapper);
+        // Oszlopstruktúra
+        const rowWrapper = document.createElement('div');
+        rowWrapper.className = 'row-wrapper';
+        const leftCol = document.createElement('div');
+        leftCol.className = 'column';
+        const rightCol = document.createElement('div');
+        rightCol.className = 'column';
+        rowWrapper.appendChild(leftCol);
+        rowWrapper.appendChild(rightCol);
+        document.body.appendChild(rowWrapper);
 
-      // Kategóriák és beosztás
-      const categories = Array.from(section.querySelectorAll('h3'));
-      const colChunks = [[], []]; // bal, jobb
+        // Kategóriák és beosztás
+        const categories = Array.from(section.querySelectorAll('h3'));
+        const colChunks = [[], []]; // bal, jobb
 
-      categories.forEach((cat, i) => {
-          const catName = cat.innerText.trim();
-          if (!catName) return;
+        categories.forEach((cat, i) => {
+            const catName = cat.innerText.trim();
+            if (!catName) return;
 
-          const columnIndex = i % 2; // váltakozva bal-jobb
-          const group = document.createElement('div');
+            const items = cat.parentElement.querySelectorAll('.menu-media');
 
-          const h2 = document.createElement('h2');
-          h2.innerText = catName;
-          group.appendChild(h2);
+            // Szűrés: csak akkor dolgozzuk fel, ha van legalább 1 értelmes sor
+            const validItems = Array.from(items).filter(media => {
+                const text = media.querySelector('h2')?.innerText?.trim();
+                return !!text;
+            });
 
-          const items = cat.parentElement.querySelectorAll('.menu-media');
-          items.forEach(media => {
-              const raw = media.querySelector('h2')?.innerText?.trim();
-              if (!raw) return;
+            if (validItems.length === 0) return; // SKIP üres kategória
 
-              const match = raw.match(/^(.+?)(\d{3,4}\s?Ft)$/);
-              let name = raw, price = '';
-              if (match) {
-                  name = match[1].trim();
-                  price = match[2].trim();
-              }
+            const columnIndex = i % 2; // váltakozva bal-jobb
+            const group = document.createElement('div');
 
-              const row = document.createElement('div');
-              row.className = 'menu-row';
+            const h2 = document.createElement('h2');
+            h2.innerText = catName;
+            group.appendChild(h2);
 
-              const nameSpan = document.createElement('span');
-              nameSpan.innerText = name;
-              row.appendChild(nameSpan);
+            items.forEach(media => {
+                const raw = media.querySelector('h2')?.innerText?.trim();
+                if (!raw) return;
 
-              if (price) {
-                  const priceSpan = document.createElement('span');
-                  priceSpan.innerText = price;
-                  row.appendChild(priceSpan);
-              }
+                const match = raw.match(/^(.+?)(\d{3,4}\s?Ft)$/);
+                let name = raw, price = '';
+                if (match) {
+                    name = match[1].trim();
+                    price = match[2].trim();
+                }
 
-              group.appendChild(row);
-          });
+                const row = document.createElement('div');
+                row.className = 'menu-row';
 
-          colChunks[columnIndex].push(group);
-      });
+                const nameSpan = document.createElement('span');
+                nameSpan.innerText = name;
+                row.appendChild(nameSpan);
 
-      // Hozzáad balra/jobbra
-      colChunks[0].forEach(group => leftCol.appendChild(group));
-      colChunks[1].forEach(group => rightCol.appendChild(group));
-  });
+                if (price) {
+                    const priceSpan = document.createElement('span');
+                    priceSpan.innerText = price;
+                    row.appendChild(priceSpan);
+                }
+
+                group.appendChild(row);
+            });
+
+            colChunks[columnIndex].push(group);
+        });
+
+        // Hozzáad balra/jobbra
+        colChunks[0].forEach(group => leftCol.appendChild(group));
+        colChunks[1].forEach(group => rightCol.appendChild(group));
+    });
 })();
