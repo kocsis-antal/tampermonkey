@@ -1,9 +1,7 @@
 // ==UserScript==
 // @name         Café Metropolitan – Greenpoint7 napi menü (fix 2 hasábos faliújság)
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/cafemetropolitan.js
-// @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/cafemetropolitan.js
+// @version      1.6
 // @description  Greenpoint7 napi menü (#Section5), stabil fix két hasábos, görgetésmentes, faliújságos megjelenítés – Kocsis Antal készítése
 // @author       Kocsis Antal
 // @match        https://cafemetropolitan.hu/*
@@ -26,17 +24,19 @@
         document.body.style.fontFamily = 'sans-serif';
         document.body.style.background = '#fff';
         document.body.style.color = '#111';
-        document.body.style.fontSize = '22px';
+        document.body.style.fontSize = '34px';
         document.body.style.lineHeight = '1.6';
         document.body.style.overflow = 'hidden'; // NE legyen görgetés!
-        document.body.style.height = '100vh';     // teljes képernyőre
+        document.body.style.height = '100vh'; // teljes képernyőre
         document.body.style.boxSizing = 'border-box';
 
         const style = document.createElement('style');
         style.textContent = `
       h1 {
         text-align: center;
-        margin-top: 0;
+        font-weight: bold;
+        margin-top: 30px;
+        margin-bottom: 50px;
       }
       .row-wrapper {
         display: flex;
@@ -50,6 +50,7 @@
       }
       h2 {
         margin: 1.5rem 0 0.5rem;
+        font-weight: bold;
         text-align: center;
       }
       .menu-row {
@@ -128,6 +129,7 @@
                 row.className = 'menu-row';
 
                 const nameSpan = document.createElement('span');
+                nameSpan.style.fontWeight = 'bold';
                 nameSpan.innerText = name;
                 row.appendChild(nameSpan);
 
