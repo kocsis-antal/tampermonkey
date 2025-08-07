@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name         Café Metropolitan – Greenpoint7 napi menü (fix 2 hasábos faliújság)
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      1.7
+// @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/cafemetropolitan.js
+// @downloadURL  https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/cafemetropolitan.js
 // @description  Greenpoint7 napi menü (#Section5), stabil fix két hasábos, görgetésmentes, faliújságos megjelenítés – Kocsis Antal készítése
 // @author       Kocsis Antal
 // @match        https://cafemetropolitan.hu/*
@@ -18,6 +20,7 @@
     };
 
     waitForEl('#etterem3 #Section5', (section) => {
+        const menuText = document.querySelector('#etterem3 .nav li').textContent;
         // Alap stílus
         document.body.innerHTML = '';
         document.body.style.margin = '2rem';
@@ -74,8 +77,9 @@
         document.head.appendChild(style);
 
         // Fejléc
+        document.body.appendChild(document.createElement('br'));
         const title = document.createElement('h1');
-        title.innerText = 'Greenpoint7 – Mai menü';
+        title.innerText = 'Greenpoint7 – ' + menuText;
         document.body.appendChild(title);
 
         // Oszlopstruktúra
