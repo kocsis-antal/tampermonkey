@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jira extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.0.20250804-0840
+// @version      1.0.20250926-1340
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-extender.js
 // @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-extender.js
 // @description  gitlab MR search for jira
@@ -26,16 +26,16 @@
         });
         observer.observe(document.body, { childList: true, subtree: true });
     };
-
+	
 	// revers order
     waitForElement('#sort-button', (button) => {
-        const label = button.querySelector('.activity-tab-sort-label');
-        if (label && label.textContent.trim() === 'Newest first') {
+        const nextOrder = btn.getAttribute('data-order') || '';
+        if (nextOrder.toLowerCase() === 'asc') {
             console.log('📌 Jira: Switching comment order to Oldest first');
             button.click();
         }
     });
-
+	
 	// MR link
     waitForElement('#viewissuesidebar', (viewissuesidebar) => {
 	    const keyVal = document.getElementById("key-val").textContent.trim();
@@ -68,7 +68,7 @@
 					</dl>
 				</div>
 			</div>`;
-	
+		
 	    viewissuesidebar.appendChild (newHTML);
     });
 
