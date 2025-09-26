@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jira extender
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
-// @version      1.0.20250926-1340
+// @version      1.0.20250926-1350
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-extender.js
 // @downloadURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/jira-extender.js
 // @description  gitlab MR search for jira
