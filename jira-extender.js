@@ -29,7 +29,7 @@
 	
 	// revers order
     waitForElement('#sort-button', (button) => {
-        const nextOrder = btn.getAttribute('data-order') || '';
+        const nextOrder = button.getAttribute('data-order') || '';
         if (nextOrder.toLowerCase() === 'asc') {
             console.log('📌 Jira: Switching comment order to Oldest first');
             button.click();
