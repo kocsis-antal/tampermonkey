@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Gitlab extender
-// @version      1.1.20250721-1645
+// @version      1.1.20251018-1330
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @source       https://github.com/kocsis-antal/tampermonkey
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
@@ -33,7 +33,7 @@
     function addMrButton() {
         var newHTML = document.createElement ('div');
         newHTML.innerHTML = `
-<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened&amp;not[label_name][]=renovate">
+<a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened&amp;draft=no&amp;not[label_name][]=renovate">
 	<button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon">
 		<!---->
 		<svg class="s16" data-testid="git-merge-icon">
