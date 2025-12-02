@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Gitlab extender
-// @version      1.1.20251018-1330
+// @version      1.1.202512020-1100
 // @namespace    https://github.com/kocsis-antal/tampermonkey/
 // @source       https://github.com/kocsis-antal/tampermonkey
 // @updateURL    https://raw.githubusercontent.com/kocsis-antal/tampermonkey/refs/heads/master/gitlab-extender.js
@@ -14,23 +14,66 @@
 
 (function() {
     'use strict';
-    // Your code here...
-    addMrButton();
 
-	// wait for MR list
+    ///////////////
+    // checkers
     // source: https://stackoverflow.com/questions/12897446/userscript-to-wait-for-page-to-load-before-executing-code-techniques
-    (new MutationObserver(check)).observe(document, {childList: true, subtree: true});
-    function check(changes, observer) {
-        if(document.querySelector('.merge-request')) {
-            observer.disconnect();
-            // actions to perform after #mySelector is found
 
-            colorLines();
+    // wait for MR button
+    (new MutationObserver(checkButton)).observe(document, {childList: true, subtree: true});
+    function checkButton(changes, observer) {
+        const mrButton = document.querySelector('[data-testid="merge-button"]');
+        if(mrButton) {
+            observer.disconnect();
+
+            const approvals = document.querySelector('[data-testid="approvals-summary-content"]');
+
+            // ide jön a szöveg majd
+            const info = document.createElement('span');
+            info.style.marginLeft = '8px';
+
+            // ha van approvals elem -> zöld, ha nincs -> piros
+            if (approvals) {
+                info.textContent = 'A változtatás el lett fogadva.';
+                info.style.color = 'green';
+            } else {
+                info.textContent = 'Még nem került elfogadásra!';
+                info.style.color = 'red';
+                info.style.fontWeight = 'bold';
+            }
+
+            // MR gomb mellé rakjuk
+            mrButton.insertAdjacentElement('afterend', info);
         }
     }
 
+    // wait for nav bar
+    (new MutationObserver(checkNav)).observe(document, {childList: true, subtree: true});
+    function checkNav(changes, observer) {
+        const navBar = document.querySelector('.user-bar > div');
+        if(navBar) {
+            observer.disconnect();
+
+            addMrButton(navBar);
+        }
+    }
+
+    // wait for MR list
+    (new MutationObserver(checkList)).observe(document, {childList: true, subtree: true});
+    function checkList(changes, observer) {
+        const mrs = document.querySelectorAll('.merge-request');
+        if(mrs && mrs.length>0) {
+            observer.disconnect();
+
+            colorLines(mrs);
+        }
+    }
+
+    ///////////////
+    // modifiers
+
     // MR button
-    function addMrButton() {
+    function addMrButton(navBar) {
         var newHTML = document.createElement ('div');
         newHTML.innerHTML = `
 <a title="CC Team open MRs" aria-label="CC Team open MRs" href="/groups/cc-team/-/merge_requests?scope=all&state=opened&amp;draft=no&amp;not[label_name][]=renovate">
@@ -44,16 +87,15 @@
 </a>
 `;
 
-        const navBar = document.querySelector('.user-bar > div');
         navBar.insertBefore(newHTML, document.querySelector('[data-testid="super-sidebar-collapse-button"]'));
     }
 
     // line coloring
-    function colorLines() {
+    function colorLines(mrs) {
         const currentUser = document.querySelector('[data-testid="user-menu-toggle"] > span > span').textContent.replace(" user’s menu","");
         // console.log('currentUser: [' + currentUser + ']');
 
-        document.querySelectorAll('.merge-request').forEach(mrLine => {
+        mrs.forEach(mrLine => {
             try {
                 const text = mrLine.querySelector('.issue-title-text').text;
                 if (/^\s+Draft:/.test(text) ) {
