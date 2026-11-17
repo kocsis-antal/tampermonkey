@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Café Metropolitan – GreenPoint7 napi étlap (v2)
 // @namespace    http://tampermonkey.net/
-// @version      2.3.0
-// @description  GreenPoint7 kivetítő: napi A/B menük és étlap, rendezett kártyás megjelenítés, görgetés nélkül.
+// @version      2.6.0
+// @description  GreenPoint7 kivetítő: konkrét HTML alapú étlap, A/B menük és két hasáb, görgetés nélkül.
 // @author       Kocsis Antal
 // @match        https://www.metropolitanetterem.hu/etlap*
 // @match        https://metropolitanetterem.hu/etlap*
@@ -29,11 +29,11 @@
         'július', 'augusztus', 'szeptember', 'október', 'november', 'december'];
     const DAY_RE = /(hétfő|kedd|szerda|csütörtök|péntek|szombat|vasárnap)/i;
     const PRICE_RE = /^(.*?)(\d{1,3}(?:[ .]\d{3})+|\d{3,5})\s*(?:,-)?\s*(Ft|HUF)\b/i;
-    const CATEGORIES = /^(?:(?:[A-Z]|[1-9])\s*[.)-]?\s*menü|menük|napi ajánlat(?:ok)?|leves(?:ek)?|főzelék(?:ek)?|feltét(?:ek)?|tészta(?:féle|félék|ételek|k)?|vegetáriánus(?: ételek)?|vegán(?: ételek)?|fitt?nes+s?|főétel(?:ek)?|frissensült(?:ek)?|köret(?:ek)?|salát(?:a|ák)|desszert(?:ek)?|egyéb(?: ételek)?|séf ajánlata)$/i;
+    const CATEGORIES = /^(?:(?:[A-Z]|[1-9])\s*[.)-]?\s*menü|menük|napi ajánlat(?:ok)?|leves(?:ek)?|főzelék(?:ek)?|feltét(?:ek)?|tészta(?:féle|félék|ételek|k)?|vegetáriánus(?: ételek)?|vegán(?: ételek)?|fitt?nes+s?|főétel(?:ek)?|frissensült(?:ek)?|köret(?:ek)?|salát(?:a|ák)|desszert(?:ek)?|egyéb(?: ételek)?|séf ajánlata|chefünk ajánlata|séfünk ajánlata|laktóz[- ]*és[- ]*gluténmentes)$/i;
     const MENU_TITLE_RE = /^[„“"'«]?\s*([AB])\s*[”"'»]?\s*[.)-]?\s*menü\s*[:–-]?$/i;
     const MENU_LETTER_RE = /^[„“"'«]?\s*([AB])\s*[”"'»]?$/i;
     const ALLERGEN_RE = /^(?:glutén|tojás|szója|tej(?:,?\s*laktóz)?|laktóz|diófélék|földimogyoró|mogyoró|zeller|szezámmag|mustár|hal|rákfélék|puhatestűek|csillagfürt|szulfit(?:ok)?|kén-dioxid)$/i;
-    const TAG_RE = /^(?:laktóz[- ]\s*és[- ]\s*gluténmentes|laktózmentes|gluténmentes|tejmentes|chefünk ajánlata|séfünk ajánlata|újdonság|csípős)$/i;
+    const TAG_RE = /^(?:laktózmentes|gluténmentes|tejmentes|újdonság|csípős)$/i;
     const NO_MENU_RE = /(?:nincs|még nem|nem elérhető|nem található).{0,50}(?:étlap|menü|kínálat)|(?:étlap|menü|kínálat).{0,50}(?:nincs|nem érhető el)/i;
     // Az allergén és tájékoztató szakasz NEM étel. Fontos: ezek bármelyik
     // kategória között is előfordulhatnak, ezért soha nem állunk le véglegesen!
@@ -78,229 +78,119 @@
     }
 
     function clean(s) {
-        return (s || '').replace(/\s+/g, ' ').replace(/[♡♥❤⭐★]/g, '').trim();
+        return (s || '').replace(/\s+/g, ' ').trim();
     }
 
-    function sourceRoot() {
-        return document.querySelector('main') || document.querySelector('[role="main"]') || document.body;
+    const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const weekdayIndex = { hétfő: 0, kedd: 1, szerda: 2, csütörtök: 3, péntek: 4 };
+
+    // A tényleges metropolitanetterem.hu /etlap DOM-ja alapján:
+    // #days > button[data-i="0".."4"] -- a nap neve mellett lehet "ma" vagy "holnap".
+    // #combo > article              -- A és B menü.
+    // #cats > .cat > .dish         -- további ételkategóriák és árak.
+    function dayTabs() {
+        return [...document.querySelectorAll('#days button[data-i]')];
     }
 
-    // Csak rövid, napot jelölő elemeket nézünk: nem teljes konténerek szövegét.
-    function dayMarkers(root) {
-        return [...root.querySelectorAll('h2,h3,h4,h5,button,summary,time,[role="tab"],[data-date],[class*="day"],[class*="date"]')]
-            .filter(el => !el.closest(`#${SCREEN_ID}`))
-            .map(el => ({ el, label: clean(el.textContent),
-                date: el.getAttribute('data-date') || el.getAttribute('datetime') || '' }))
-            .filter(x => x.label.length < 90 && DAY_RE.test(x.label));
+    function foodFingerprint() {
+        const combo = document.querySelector('#combo');
+        const cats = document.querySelector('#cats');
+        // A szívecskék és allergénjelölések változása nem számít étlapváltozásnak.
+        return [combo?.innerHTML || '', cats?.innerHTML || ''].join('\n');
     }
 
-    function isTargetDate(text, target) {
-        const [year, month, day] = target.iso.split('-');
-        const m = String(+month), d = String(+day);
-        return text.includes(target.iso) ||
-            new RegExp(`\\b${year}[.\\/-]\\s*0?${m}[.\\/-]\\s*0?${d}\\b`).test(text) ||
-            new RegExp(`\\b0?${m}[.\\/-]\\s*0?${d}\\b`).test(text) ||
-            new RegExp(`\\b0?${d}[.\\/-]\\s*0?${m}\\b`).test(text) ||
-            new RegExp(`${MONTHS[+month - 1]}\\s+0?${d}\\.`, 'i').test(text);
+    function activeDayIndex() {
+        const active = document.querySelector('#days button[data-i][aria-pressed="true"]');
+        return active ? Number(active.dataset.i) : null;
     }
 
-    function markerMatches(marker, target) {
-        if (!new RegExp(target.weekday, 'i').test(marker.label)) return false;
-        // Ha a jelölőn van tényleges ISO-dátum, az fontosabb a nap nevénél.
-        if (/\b20\d{2}-\d{2}-\d{2}\b/.test(marker.date)) {
-            return marker.date.slice(0, 10) === target.iso;
+    async function activateDay(target) {
+        const index = weekdayIndex[target.weekday];
+        const tabs = dayTabs();
+        const tab = tabs.find(el => Number(el.dataset.i) === index);
+        if (!tab) {
+            console.warn('[GreenPoint7 v2.6] A napválasztó hiányzik:', target.weekday,
+                tabs.map(el => ({id: el.dataset.i, text: clean(el.textContent)})));
+            return false;
         }
-        return true;
-    }
 
-    function targetMarker(root, target) {
-        const markers = dayMarkers(root).filter(x => markerMatches(x, target));
-        const explicitlyDated = markers.filter(x => isTargetDate(`${x.label} ${x.date}`, target));
-        if (explicitlyDated.length) return explicitlyDated[0];
-        // A dátum a napcím melletti testvérelemben is lehet.
-        const nearby = markers.find(x => isTargetDate(
-            clean(x.el.parentElement?.textContent).slice(0, 180), target));
-        if (nearby) return nearby;
-        // Ha látszik dátum, de nem a kívánt napé, nem jeleníthetünk meg régi étlapot.
-        const datedMarker = markers.some(x =>
-            /20\d{2}[-./]\d{1,2}[-./]\d{1,2}|\d{1,2}[./-]\d{1,2}|(?:január|február|március|április|május|június|július|augusztus|szeptember|október|november|december)\s+\d/i
-                .test(`${x.label} ${x.date}`));
-        if (datedMarker || target.nextWeek) return null;
-        return markers[0] || null;
-    }
+        // A tényleges adatot ellenőrizzük, nem a gomb CSS-állapotát.
+        if (activeDayIndex() === index && hasFoodData()) return true;
 
-    function selectTab(root, target) {
-        const marker = targetMarker(root, target);
-        if (!marker) return false;
-        const el = marker.el.closest('button,[role="tab"],summary') || marker.el.querySelector('button,[role="tab"]');
-        if (!el) return false;
-        if (el.getAttribute('aria-selected') === 'true' || el.getAttribute('data-state') === 'active' ||
-            el.getAttribute('aria-expanded') === 'true') return false;
-        el.click();
-        return true;
-    }
-
-    // A legnagyobb olyan nap-konténert választjuk, amelyben nincs másik nap fejléce.
-    function dayBlock(root, target) {
-        const marker = targetMarker(root, target);
-        if (!marker) return null;
-        let best = null;
-        for (let parent = marker.el; parent && parent !== root; parent = parent.parentElement) {
-            if (parent.matches('button,[role="tab"],nav,header,footer')) continue;
-            const txt = clean(parent.textContent);
-            if (txt.length < 50 || txt.length > 16000) continue;
-            const otherDays = dayMarkers(parent).filter(x =>
-                !new RegExp(target.weekday, 'i').test(x.label));
-            if (otherDays.length) break;
-            if (!best || txt.length > clean(best.textContent).length) best = parent;
+        const before = foodFingerprint();
+        tab.click();
+        // Egyes oldalak késleltetve frissítik a tartalmat.
+        for (let i = 0; i < 40; i++) {
+            await pause(200);
+            if (activeDayIndex() === index && hasFoodData() &&
+                foodFingerprint() !== before) {
+                // Megvárjuk, hogy az adatokat kirajzoló ciklus véget érjen.
+                await pause(200);
+                return activeDayIndex() === index && hasFoodData();
+            }
         }
-        return best;
-    }
-
-    function activePanel(root) {
-        return [...root.querySelectorAll('[role="tabpanel"]')].find(el =>
-            el.getAttribute('hidden') === null && el.getAttribute('aria-hidden') !== 'true') || null;
-    }
-
-    function menuArea(root, target) {
-        return dayBlock(root, target) || activePanel(root) || root;
-    }
-
-    function textTokens(root) {
-        const result = [];
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-            acceptNode(node) {
-                if (!node.parentElement || node.parentElement.closest(
-                    `#${SCREEN_ID},script,style,noscript,nav,footer,header,svg,button,[role="tab"]`)) {
-                    return NodeFilter.FILTER_REJECT;
-                }
-                return clean(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-            },
+        console.warn('[GreenPoint7 v2.6] A nap kiválasztása vagy étlapfrissítése nem sikerült.', {
+            target: target.weekday, index, activeIndex: activeDayIndex(),
+            combo: !!document.querySelector('#combo article'),
+            categories: document.querySelectorAll('#cats .cat').length,
         });
-        for (let node; (node = walker.nextNode());) {
-            const categoryHeading = node.parentElement.closest('h2,h3,h4,h5');
-            for (const part of node.nodeValue.split(/\r?\n/)) {
-                const text = clean(part);
-                if (text) result.push({ text, heading: !!categoryHeading });
-            }
-        }
-        return result;
+        return false;
     }
 
-    // Az új oldalon a „A” és a „menü 2390 Ft” gyakran külön szövegcsomópont.
-    // A menüt ezért előbb összefűzzük, és csak utána csoportosítunk.
-    function normalizeMenuTokens(tokens) {
-        const result = [];
-        for (let i = 0; i < tokens.length; i++) {
-            const token = tokens[i];
-            const letter = token.text.match(MENU_LETTER_RE);
-            const next = tokens[i + 1];
-            if (letter && next && /^menü(?:\s|$)/i.test(next.text)) {
-                result.push({ text: `${letter[1].toUpperCase()} ${next.text}`, heading: true });
-                i++;
-            } else {
-                result.push(token);
-            }
-        }
-        return result;
+    function hasFoodData() {
+        return !!document.querySelector('#combo article li, #cats .cat .dish');
     }
 
-    function parseTokens(tokens) {
+    function publishedWeek() {
+        // Példa: "november 16. – november 20.". Az oldal tényleges #week elemét olvassuk.
+        const t = clean(document.querySelector('#week')?.textContent).toLowerCase();
+        const p = new RegExp(`(${MONTHS.join('|')})\\s+(\\d{1,2})\\.?\\s*[–—-]\\s*(?:(${MONTHS.join('|')})\\s+)?(\\d{1,2})\\.?`, 'i');
+        const m = t.match(p);
+        if (!m) return null;
+        const now = localParts();
+        const a = MONTHS.indexOf(m[1].toLowerCase());
+        const b = m[3] ? MONTHS.indexOf(m[3].toLowerCase()) : a;
+        const y = now.year - (now.month === 1 && a === 11 ? 1 : 0);
+        return {start: Date.UTC(y,a,+m[2]),end: Date.UTC(y+(b<a?1:0),b,+m[4])};
+    }
+
+    // Az allergén-számok önálló <sup> elemek, eltávolítjuk őket a megjelenítő szövegből.
+    function foodName(element) {
+        if (!element) return '';
+        const copy = element.cloneNode(true);
+        copy.querySelectorAll('sup.alg, .alg, .today, svg').forEach(el => el.remove());
+        return clean(copy.textContent);
+    }
+
+    function parseMenu() {
         const groups = [];
-        let current = null;
-        let ignoringInformation = false;
-        const skip = /^(?:heti étlap|étlap|mit főzünk a héten\??|kérem e-mailben|e-mailben kérem|szavazás|szavazz|kedvencek|kosár|részletek|vissza|tovább|mai menü|napi kínálat|ára|értékelés|kívánok valamit|kívánság|válassz napot|nyomj szívet|betöltés|bejelentkezés)/i;
-        const tokensToRead = normalizeMenuTokens(tokens);
-
-        for (const token of tokensToRead) {
-            const t = token.text;
-            // A tájékoztató blokkot kihagyjuk, de a feldolgozást NEM állítjuk le:
-            // pl. A/B menü után jöhetnek még a külön rendelhető főételek.
-            if (END_OF_FOOD_RE.test(t)) {
-                ignoringInformation = true;
-                current = null;
-                continue;
-            }
-            if (t.length > 175 || t.length < 2 ||
-                (DAY_RE.test(t) && t.length < 45) || skip.test(t)) continue;
-            if (/^(?:\d{1,2}[.,\-/ ]+){1,3}\d{0,4}$/.test(t) ||
-                /^\d+$/.test(t)) continue;
-
-            const match = t.match(PRICE_RE);
-            const withoutPrice = clean(match ? match[1] : t).replace(/\s*[:–-]\s*$/, '');
-            const price = match ? `${match[2]} Ft` : '';
-            const menu = withoutPrice.match(MENU_TITLE_RE);
-            if (menu) {
-                current = {
-                    title: `${menu[1].toUpperCase()} menü`,
-                    kind: 'menu',
-                    price,
-                    items: [],
-                };
-                groups.push(current);
-                continue;
-            }
-
-            // A normál kategóriák címében az ételár nem szerepel.
-            if (CATEGORIES.test(withoutPrice) && !price) {
-                ignoringInformation = false;
-                current = { title: withoutPrice, kind: 'category', price: '', items: [] };
-                groups.push(current);
-                continue;
-            }
-
-            // Az allergénlista, dobozdíj, szavazás stb. nem tartozik a menühöz.
-            // Csak valódi kategóriacímnél indulhat újra az ételek felvétele.
-            if (ignoringInformation) continue;
-
-            // A lap elején lévő dátum / marketing szövegekből soha ne legyen "étel".
-            if (!current) continue;
-
-            // A menü címsora és az ár akár három külön text node-ba is kerülhet.
-            if (/^menü$/i.test(t)) continue;
-            if (match && !withoutPrice) {
-                if (current.kind === 'menu' && !current.price) {
-                    current.price = price;
-                } else {
-                    const last = current.items.at(-1);
-                    if (last && !last.price) last.price = price;
-                }
-                continue;
-            }
-
-            // Szűrjük az allergénmagyarázatokat, jelvényeket és más kísérőszöveget.
-            if (ALLERGEN_RE.test(t) || TAG_RE.test(t) ||
-                /^\d{1,2}\s*[.,-]\s*\d{1,2}/.test(t) ||
-                /^(?:Ft|HUF|[-–—]|\.{3}|[+\-])$/i.test(t)) continue;
-
-            const name = withoutPrice;
-            if (!name || name.toLowerCase() === 'menü') continue;
-            if (current.items.at(-1)?.name === name && !price) continue;
-            current.items.push({ name, price });
+        // A/B menü: egy article = egy menü, <li> = egy étel.
+        for (const article of document.querySelectorAll('#combo > article')) {
+            const title = clean(article.querySelector('h3')?.textContent);
+            const letter = title.match(/[„“"']?\s*([AB])\s*[”"']?\s*menü/i);
+            if (!letter) continue;
+            const items = [...article.querySelectorAll('li')]
+                .map(li => ({name: foodName(li), price: ''}))
+                .filter(item => item.name);
+            if (!items.length) continue;
+            groups.push({
+                title: `${letter[1].toUpperCase()} menü`, kind: 'menu',
+                price: clean(article.querySelector('.row .price, .price')?.textContent),
+                items,
+            });
         }
-        return groups.filter(g => g.items.length);
-    }
-
-    function parseMenu(root, target) {
-        const tokens = textTokens(root);
-        // Heti nézetben csak a ténylegesen kiválasztott nap alatti szöveget használjuk.
-        const hasSeveralDays = new Set(tokens.flatMap(x => {
-            const m = x.text.match(DAY_RE);
-            return m && x.text.length < 90 ? [m[1].toLowerCase()] : [];
-        })).size > 1;
-        let used = tokens;
-        if (hasSeveralDays) {
-            const start = tokens.findIndex(x => x.text.length < 90 &&
-                new RegExp(target.weekday, 'i').test(x.text));
-            if (start < 0) return [];
-            let end = tokens.findIndex((x, i) => i > start && x.text.length < 90 &&
-                DAY_RE.test(x.text) &&
-                !new RegExp(target.weekday, 'i').test(x.text));
-            if (end < 0) end = tokens.length;
-            used = tokens.slice(start + 1, end);
+        // A további ételek: .cat h4 a kategórianév, .dish közvetlen span-jei az étel és az ár.
+        for (const cat of document.querySelectorAll('#cats > .cat')) {
+            const title = clean(cat.querySelector('h4')?.textContent);
+            if (!title) continue;
+            const items = [...cat.querySelectorAll(':scope > .dish')].map(dish => {
+                const nameElement = dish.querySelector(':scope > span:not(.price):not(.dots)');
+                const priceElement = dish.querySelector(':scope > .price');
+                return { name: foodName(nameElement), price: clean(priceElement?.textContent) };
+            }).filter(item => item.name);
+            if (items.length) groups.push({title, kind: 'category', price: '', items});
         }
-        if (NO_MENU_RE.test(used.map(x => x.text).join(' '))) return [];
-        return parseTokens(used);
+        return groups;
     }
 
     function ensureScreen() {
@@ -455,7 +345,7 @@
                     columns.clientHeight > 40) return;
             }
         }
-        console.warn('[GreenPoint7 v2.3] A teljes étlap a minimális betűmérettel sem fér el.');
+        console.warn('[GreenPoint7 v2.6] A teljes étlap a minimális betűmérettel sem fér el.');
     }
 
     function addFoodRow(parent, item, className) {
@@ -556,27 +446,27 @@
                 return;
             }
             lastTarget = target.iso;
-            const root = sourceRoot();
-            if (!targetMarker(root, target)) {
-                show(target, [], target.nextWeek
-                    ? 'A következő heti étlap még nem azonosítható a weboldalon.'
-                    : 'Az adott nap étlapja még nem jelent meg, vagy nem felismerhető. F8: eredeti weboldal.');
+
+            if (!document.querySelector('#days') || !document.querySelector('#week')) {
+                show(target, [], 'Az étterem étlapja még nem töltődött be. F8: eredeti weboldal.');
                 return;
             }
-            const clicked = selectTab(root, target);
-            if (clicked) await new Promise(resolve => setTimeout(resolve, 650));
-            const area = menuArea(root, target);
-            const groups = parseMenu(area, target);
-            if (!groups.length) {
-                show(target, [], target.nextWeek && !targetMarker(root, target)
-                    ? 'A következő heti étlap még nem azonosítható a weboldalon.'
-                    : 'Erre a napra még nincs felismerhető, közzétett étlap. F8: eredeti weboldal.');
-            } else {
-                show(target, groups);
+            const week = publishedWeek();
+            const dayMs = Date.parse(`${target.iso}T00:00:00Z`);
+            if (!week || dayMs < week.start || dayMs > week.end) {
+                show(target, [], 'Erre a napra még nincs közzétett étlap. F8: eredeti weboldal.');
+                return;
             }
+            if (!await activateDay(target)) {
+                show(target, [], 'Nem sikerült kiválasztani a megfelelő napot. F8: eredeti weboldal.');
+                return;
+            }
+            // Kiválasztás után csak a hozzá tartozó konkrét étel DOM-részeket olvassuk.
+            const groups = parseMenu();
+            show(target, groups, groups.length ? '' : 'Erre a napra még nincs közzétett étlap. F8: eredeti weboldal.');
         } catch (error) {
-            console.error('[GreenPoint7 v2.3] Menüfeldolgozási hiba:', error);
-            show(selectedDate(), [], 'Az új étlap szerkezetét nem sikerült feldolgozni. F8: eredeti weboldal.');
+            console.error('[GreenPoint7 v2.6] Menüfeldolgozási hiba:', error);
+            show(selectedDate(), [], 'Az étlap feldolgozása sikertelen. F8: eredeti weboldal.');
         } finally {
             busy = false;
         }
@@ -606,6 +496,10 @@
         debounce = setTimeout(() => void refresh(), 700);
     });
     observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+    // Ha a webapp későn indul, a napváltás akkor is újrapróbálható legyen.
+    setInterval(() => {
+        if (document.querySelector(`#${SCREEN_ID} .gp7-message`)) void refresh();
+    }, 10_000);
     setInterval(() => void refresh(), CONFIG.refreshMinutes * 60_000);
     setInterval(() => location.reload(), CONFIG.fullReloadMinutes * 60_000);
 })();
